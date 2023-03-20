@@ -1,8 +1,8 @@
 ---
-author:
+Author:
 - Faber Pas, Len Pasic, Ayoub Elgharrafi
-date: December 2022
-title: "AI opdracht 4: Chess AI"
+Date: December 2022
+Title: "AI opdracht 4: Chess AI"
 ---
 
 # Inleiding
@@ -52,13 +52,10 @@ kleiner dan de waarden van de stukken zelf.
 
 Om dit te implementeren maken we gebruik van piece-square table (PST):
 
-Een voorbeeld van een PST voor het paard is te zien in figuur
-[1](#PST){reference-type="ref" reference="PST"}
+Een voorbeeld van een PST voor het paard is te zien in de figuur.
 
-[Een voorbeeld van een piece-square table voor het paard. Links de
-waarden die de computer krijgt, rechts een grafische illustratie.]{#PST
-.image .placeholder original-image-src="https://github.com/Len-P/chess-engine/blob/master/PST.png?raw=true"
-original-image-title="fig:" width="100%"}
+![Een voorbeeld van een piece-square table voor het paard. Links de
+waarden die de computer krijgt, rechts een grafische illustratie.](https://github.com/Len-P/chess-engine/blob/master/PST.png?raw=true)
 
 ## Castle score
 
