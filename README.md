@@ -1,6 +1,5 @@
 ---
-Author:
-- Faber Pas, Len Pasic, Ayoub Elgharrafi
+Author: Faber Pas, Len Pasic, Ayoub Elgharrafi
 Date: December 2022
 Title: "AI opdracht 4: Chess AI"
 ---
