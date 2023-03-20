@@ -57,7 +57,7 @@ Een voorbeeld van een PST voor het paard is te zien in figuur
 
 [Een voorbeeld van een piece-square table voor het paard. Links de
 waarden die de computer krijgt, rechts een grafische illustratie.]{#PST
-.image .placeholder original-image-src="PST.png"
+.image .placeholder original-image-src="https://github.com/Len-P/chess-engine/blob/master/PST.png?raw=true"
 original-image-title="fig:" width="100%"}
 
 ## Castle score
