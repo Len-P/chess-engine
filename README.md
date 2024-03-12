@@ -1,236 +1,226 @@
 ---
 Author: Faber Pas, Len Pasic, Ayoub Elgharrafi
 Date: December 2022
-Title: "AI opdracht 4: Chess AI"
+Title: "Chess AI"
 ---
 
-# Inleiding
+# Introduction
 
-Schaak is een uitgebreid spel met ontzettend veel mogelijkheden. Een
-schaak AI zal dus niet alleen veel mogelijke zetten moeten doorlopen,
-maar ook voor elke zet snel moeten kunnen berekenen hoe goed die zet is.
-Om dit te doen maakt men gebruik van een utility functie. Dit is een
-functie die voor elke zet berekent wat de waarde van die zet is aan de
-hand van enkele features. Het zijn vooral die features en hun
-implementatie die de sterkte van de AI zullen bepalen.
+Chess is a vast game with an awful lot of possibilities. A
+chess AI will therefore not only have to go through many possible moves,
+but also have to be able to quickly calculate for each move how good that move is.
+To do this, one uses a utility function. This is a
+function that calculates for each move what the value of that move is based
+based on some features. It is mainly those features and their
+implementation that will determine the strength of the AI.
 
 # Features
 
-De code achter de zaken die in deze sectie besproken worden wordt
-gevonden in chessutility.py.
+The code behind the features discussed in this section is
+found in chessutility.py.
 
 ## Material value
 
-Een eerste en zeer belangrijke feature die ingevoerd werd is de waarde
-van de stukken op het bord. Het is in een schaakspel belangrijk om geen
-stukken te verliezen, dat is intuïtief duidelijk. Verschillende stukken
-hebben verschillende waarden, in verhouding hieronder opgelijst:
+A first and very important feature introduced is the value
+of the pieces on the board. It is important not to lose any
+pieces, which is intuitively obvious. Different pieces
+have different values, listed below:
 
--   Pion: waarde 1
+- Pawn: value 1
 
--   Paard, loper: waarde 3
+- Knight, bishop: value 3
 
--   Toren: waarde 5
+- Rook: value 5
 
--   Dame: waarde 9
+- Queen: value 9
 
-Dit wordt op een vrij simpele manier geïmplementeerd: de *materialscore*
-functie kijkt welke stukken nog op het bord staan per kleur, en trekt de
-waarde van de zwarte stukken van die van de witte stukken af. De
-returned value is dus de utility voor wit. De relatieve waarden van de
-stukken werden hier maal 100 gedaan, bv. 300 voor een paard.
+This is implemented in a fairly simple way: the *materialscore*
+function looks at which pieces are left on the board by color, and subtracts the
+value of the black pieces from that of the white pieces. The
+returned value is thus the utility for white. The relative values of the
+pieces were multiplied by 100, e.g. 300 for a knight.
 
 ## Position value
 
-Ook de positie van de stukken op het bord is natuurlijk van belang. Een
-koning moet niet in het midden van het veld staan, maar ergens beschermd
-in een hoekje. Een pion is niet veel waard, maar kan veranderen in een
-dame wanneer hij het veld oversteekt. In het algemeen zijn de waarden
-die men kan verdienen voor een goede positionering een ordegrootte
-kleiner dan de waarden van de stukken zelf.
+The position of the pieces on the board is also important, of course. A
+king should not be in the middle of the field, but somewhere protected
+in a corner. A pawn is not worth much, but can turn into a
+lady when it crosses the field. In general, the values
+one can earn for good positioning are an order of magnitude
+smaller than the values of the pieces themselves.
 
-Om dit te implementeren maken we gebruik van piece-square table (PST):
+To implement this, we use piece-square table (PST):
 
-Een voorbeeld van een PST voor het paard is te zien in de figuur.
+An example of a PST for the horse is shown in the figure.
 
-![Een voorbeeld van een piece-square table voor het paard. Links de
-waarden die de computer krijgt, rechts een grafische illustratie.](https://github.com/Len-P/chess-engine/blob/master/PST.png?raw=true)
+![An example of a piece-square table for the knight. On the left are the
+values given to the computer, on the right a graphical illustration](https://github.com/Len-P/chess-engine/blob/master/PST.png?raw=true)
 
 ## Castle score
 
-Rokeren is een speciale zet in schaak, en zou een grote waarde moeten
-dragen aangezien het de koning in veiligheid brengt en de toren in een
-goede positie brengt. Onrechtstreeks zit dit in de PST's aangezien de
-koning en de toren goede scores krijgen op de posities waar ze belanden
-na het rokeren, maar dit zorgt er vaker voor dat de AI de koning
-handmatig naar de hoek zal bewegen dan rokeren, dus werd er een aparte
-feature gemaakt die het rokeren beloond.
+Castling is a special move in chess, and should carry great value
+as it moves the king to safety and puts the rook in a
+good position. Indirectly, this is in the PSTs since the
+king and rook get good scores on the positions where they end up
+after castling, but this more often causes the engine to move the king manually to the corner, rather than castling. That's why a separate
+feature that rewards castling was implemented.
 
-De implementatie verliep als volgt:
+The implementation works as follows:
+- Check if castling with 1 of the rooks is possible in the current position. This is a conditional statement that first of all requires castling rights (castling is not always allowed) and second, the position of the rooks is taken into account.
+  
+- Return a reward of 90 if the conditions are met. This
+  value is chosen because there should be a strong emphasis on the
+  importance of castling, while it is not desirable for a pawn to be
+  equal to the action of castling.
 
--   Kijk na of rokeren met 1 van de torens mogelijk is in de huidige
-    positie. Dit is een voorwaardelijk statement dat ten eerste
-    rokeer-rechten (rokeren mag niet altijd) en ten tweede de positie
-    van de torens in rekening brengt.
-
--   Geef een beloning van 90 als de voorwaarden voldaan zijn. Deze
-    waarde wordt gekozen omdat er een grote nadruk moet zijn op het
-    belang van rokeren, terwijl het niet gewenst is dat een pion
-    evenwaardig is als de actie van het rokeren.
-
--   Geef geen beloning, maar ook geen straf (beloning 0) indien de
-    voorwaarden niet voldaan zijn. Op het eerste zicht zou men denken
-    dat een straf hier van toepassing zou zijn, maar dit zou resulteren
-    in een straf zodra het rokeren voltooid wordt. Doordat rokeren niet
-    meer kan nadat het is uitgevoerd, zou de AI nu bij elke volgende zet
-    een straf krijgen. Het is eerder gewenst dat rokeren wordt
-    nagestreefd en zodra het is uitgevoerd dat men verdergaat zoals
-    gewoonlijk en de volledige Castle Score method overslaat.
+- Give no reward, but also no punishment (reward 0) if the
+  conditions are not met. At first glance, one would think
+  that a penalty would apply here, but this would result
+  in a penalty as soon as castling is completed. Because castling cannot
+  be possible after it is executed, the engine would now receive a penalty on every subsequent move.
+  Rather, it is desired that castling be
+  pursued and once it is executed that one continue as
+  usual and skip the full Castle Score method.
 
 ## Check score
 
-Door de tegenstander schaak te zetten dwing je hem/haar hierop te
-reageren en zet je druk op de structuur rond de koning. Een schaker moet
-dus proberen op zoek te gaan naar kansen om de tegenstander schaak te
-zetten, en in de meeste gevallen is het ook goed om die kansen te
-benutten. Er werd daarom een feature ingebouwd die de AI aanzet om de
-tegenstander schaak te zetten.
+By putting the opponent in check you force them to respond. You also put pressure on the structure around the king. A chess player should
+thus try to look for opportunities to put the opponent in check. A feature was therefore built in that prompts the engine to check the
+opponent.
 
-De implementatie is als volgt:
+The implementation works as follows:
 
--   Kijk na of de koning van de speler die aan de beurt is schaak wordt
-    gezet.
+- Check whether the king of the player whose turn it is, is already in check.
 
--   Geef een straf van -90 indien de koning schaak wordt gezet.
+- Give a penalty of -90 if the king is in check.
 
--   Doe niets als de koning niet schaak wordt gezet.
+- Do nothing if the king is not in check.
 
--   Aan de hand hiervan zal de AI zoeken naar de positie waarin de
-    tegenstander schaak gezet wordt. De positie waarin hijzelf schaak
-    wordt gezet zal worden vermeden. Net zoals bij Castle Score wordt
-    een waarde van 90 gekozen met dezelfde redenering.
+- Based on this, the agent will search for the position where the
+  opponent is in check. The position in which he himself is in check
+  will be avoided. Similar to Castle Score,
+  a value of 90 is chosen with the same reasoning.
 
-## Kans op materiële verliezen
+## Chance of material losses
 
-Een situatie die geregeld voorkomt is dat een stuk zowel aangevallen als
-gedekt staat, en hier is het natuurlijk belangrijk dat het aantal
-dekkende stukken groter is dan het aantal aanvallers. De *materialscore*
-functie die daarnet besproken werd zal tot op zekere hoogte hiervoor
-zorgen, maar om het programma snel genoeg te houden kijken we meestal
-maar 3-4 zetten in de toekomst, waardoor bepaalde scenario's niet
-volledig uitgerekend zullen kunnen worden. Er werd daarom een feature
-ingevoerd die specifiek berekent of een stuk nog genoeg gedekt staat.
+A situation that occurs regularly is that a piece is both attacked and
+covered, and here of course it is important that the number of
+covering pieces is greater than the number of attackers. The *materialscore*
+function just discussed will to some extent take care of this,
+but in order to keep the program fast enough we usually look
+only 3-4 moves into the future, so certain scenarios will not
+be fully computed. Therefore, a feature was implemented
+that specifically calculates whether a piece is still covered enough.
 
-De implementatie is vrij straight-forward, met een paar subtiliteiten.
+The implementation is pretty straight-forward, with a few subtleties.
 
--   Minder dekkers dan aanvallers: in dit geval zou de verdediger, in
-    het geval dat hij de zet toch speelt, alle dekkers en het stuk dat
-    gespeeld wordt verliezen. We gaan er vanuit dat de aanvaller eerst
-    met al zijn slechtste stukken zal pakken. Hij verliest dus zijn
-    slechtste stukken, en evenveel als dat er dekkers zijn. Verder moet
-    er nog een uitzondering gemaakt worden indien er bij de dekkers een
-    koning zit: deze zal niet meer kunnen meedoen want je mag jezelf
-    natuurlijk niet schaak zetten. De benodigde waarden worden berekend,
-    en het netto verlies wordt gegeven. Het verlies kan nog steeds
-    negatief zijn (i.e. de verdediger kan winst maken) als de dekkers
-    bijvoorbeeld twee pionnen en een paard zijn terwijl de aanvallers 4
-    dames zijn.
+- Fewer coverers than attackers: in this case, the defender would, in
+  case he does play the move, lose all the coverers and the piece that is
+  being played. We assume that the attacker will first attack
+  with all his worst pieces. So he will lose his
+  worst pieces, and as many as there are coverers. Furthermore,
+  an exception must be made if there is a king among the pieces.
+  He will no longer be able to participate because you are not allowed to
+  check yourself, of course. The required values are calculated
+  and the net loss is given. The loss can still
+  be negative (i.e. the defender can make a profit) if the covering pieces are
+  are for example two pawns and a knight, while the attackers are 4
+  queens.
 
--   Evenveel dekkers als aanvallers: eerst wordt er gecontroleerd of er
-    een koning bij de aanvallers zit, want alle aanvallers zullen in het
-    potentieel duel sneuvelen. Bij de dekkers mag er een koning zitten,
-    deze zal dan als laatste nemen. De netto loss wordt berekend door er
-    van uit te gaan dat de aanvaller alle aanvallers verliest, en de
-    verdediger verliest alle dekkers behalve de meest waardevolle
-    (waarmee hij als laatste neemt) en het stuk dat hij heeft gezet.
+- As many coverers as attackers: first we check whether there is
+  a king among the attackers, because all attackers will die in the
+  potential duel. Among the deckers there may be a king,
+  it will take last. The net loss is calculated by
+  assuming that the attacker loses all attackers, and the
+  defender loses all the decks except the most valuable one
+  (with which he takes last) and the piece he set.
 
--   Meer dekkers dan aanvallers: hier wordt dezelfde redenering
-    toegepast als in de eerste situatie, met dan de rol van de aanvaller
-    en verdediger omgewisseld.
+- More coverers than attackers: here the same reasoning is
+  applied as in the first situation, with then the roles of the attacker
+  and defender reversed.
 
 ## Board value
 
-De *Boardvalue* functie berekent alle features die net besproken werden
-voor een bepaalde zet, en levert de totale waarde. Deze zal opgeroepen
-worden door de chess agent (zie sectie 3).
+The *Boardvalue* function calculates all the features just discussed
+for a given move, and provides the total value. It will be called
+by the chess agent (see section 3).
 
 ## Transposition table class
 
-Omdat de waardeberekening van een bord niet triviaal is, zoals blijkt
-uit alle net besproken features, is het nuttig om over een
-transpositietabel te beschikken. Deze tabel registreert elk bord dat
-tegengekomen wordt bij het verkennen en zijn waarde. Wanneer dat zelfde
-bord door een andere zettencombinatie later nog eens terugkomt, kan men
-gewoon de waarde van dit bord uit de tabel halen. De implementatie is
-zeer basic en zal hier niet verder besproken worden. Om de borden te
-identificeren gebruikt men de python-chess *board.epd()* functie die een
-bord omzet naar een string.
+Since the value calculation of a board is not trivial, as can be seen
+from all the features just discussed, it is useful to have a
+transposition table. This table records every board (and its value) that is
+encountered while exploring. When that same
+board comes back again later, due to a different move combination, one can
+simply extract the value of this board from the table. The implementation is
+very basic and will not be discussed further here. In order to
+identify boards, one uses the python-chess *board.epd()* function that converts a
+board to a string.
 
-# De uitvoering
+# The implementation
 
-De code achter de zaken die in deze sectie besproken worden wordt
-gevonden in chessagent.py.
+The code behind the things discussed in this section is
+found in chessagent.py.
 
-De chess agent zal tijdens het spelen telkens enkele zetten vooruit
-kijken en de board value berekenen voor alle legale zetten op dat
-moment. Uiteindelijk zal hij de zet spelen met de grootste waarde. Deze
-waarde wordt bepaald aan de hand van het minimax algoritme met
+During play, the chess agent will look ahead a few moves at a time
+and calculate the board value for all legal moves at that
+moment. Eventually it will play the move with the largest value. This
+value is determined using the minimax algorithm with
 alpha-beta pruning.
 
 ## Grandmaster moves
 
-Aan chess-AI's wordt vaak een lijst met 'grandmaster moves' meegegeven,
-dat zijn zetten die, volgens verschillende grootmeesters, in een
-bepaalde situatie altijd het best zijn. Deze zetten zijn meestal aan het
-begin van het spel. Hier werden deze zetten beperkt tot de allereerste
-zet van het spel; er zal altijd geopend worden met e4 of e5, afhankelijk
-van de positie waarin gestart wordt.
+Chess engines are often given a list of grandmaster moves.
+These are moves that, according to various grandmasters, are always the best in
+particular situations. These moves are usually at the
+beginning of the game. Here, these moves were limited to the very first
+move of the game; there will always be opened with e4 or e5, depending
+on the position in which is started.
 
 ## Alpha-beta pruning
 
-De abpruning method is de implementatie van het minimax algoritme met
-alpha-beta pruning. Het neemt een schaakbord, twee floats die de alpha
-en beta waarden voorstellen, een integer die de search depth voorstelt,
-een boolean die aangeeft of de search maximaliserend of minimaliserend
-is, en een transposition table. Het alpha-beta pruning-algoritme wordt
-gebruikt om de efficiëntie van de minimax search te verbeteren door
-takken van de search tree af te snijden die de uiteindelijke beslissing
-niet kunnen beïnvloeden.
+The abpruning method is the implementation of the minimax algorithm with
+alpha-beta pruning. It takes a chessboard, two floats representing the alpha
+and beta values, an integer representing the search depth,
+a boolean representing whether the search is maximizing or minimizing, and a transposition table. The alpha-beta pruning algorithm is
+used to improve the efficiency of the minimax search by
+cutting off branches of the search tree that cannot
+influence the final decision.
 
-De implementatie gebeurt als volgt:
+The implementation is done as follows:
 
--   De methode abpruning controleert eerst of de waarde van het bord al
-    is opgeslagen in de transpositietabel. Zo ja, dan wordt de
-    opgeslagen waarde gegeven om herberekening te voorkomen.
+- The method first checks whether the value of the sign is already
+  stored in the transposition table. If so, the
+  stored value is given to avoid recalculation.
 
--   Indien de search depth gelijk is aan 0 of de verstreken tijd sinds
-    het begin van de zoekopdracht de tijdslimiet heeft overschreden,
-    geeft de method de waarde van het bord terug aan de hand van de
-    boardvalue method (uit chessutility.py).
+- If the search depth is equal to 0 or the elapsed time since
+  the start of the search has exceeded the time limit,
+  the method returns the board value using the
+  boardvalue method (from chessutility.py).
 
--   Als de search een maximaliserende search is, worden de legale zetten
-    doorlopen en wordt de waarde van elke zet berekend door de abpruning
-    method recursief op te roepen tot de reeds vermelde eindvoorwaarden
-    bereikt worden. Het slaat de maximale waarde op en werkt de waarde
-    van alpha bij. Als de betawaarde kleiner of gelijk is aan de
-    alphawaarde, wordt de search afgebroken.
+- If the search is a maximizing search, the legal moves are
+  traversed and the value of each move is calculated by calling the abpruning
+  method recursively until the already mentioned final conditions
+  are reached. It stores the maximal value and updates the value
+  of alpha. If the beta value is less than or equal to the
+  alpha value, the search is aborted.
 
--   Als de zoekopdracht een minimaliserende zoekopdracht is, wordt
-    hetzelfde gedaan, maar dan met de minimumwaarde en de betawaarde.
+- If the query is a minimizing query, the same is done,
+  but with the minimum value and the beta value.
 
-# Niet-uitgevoerde ideeën
+# Unimplemented ideas
 
-Het verzinnen van goede features was geen makkelijke taak. Het had mooi
-geweest om een neuraal netwerk te bouwen dat geregistreerde
-schaakspellen als input neemt en daaruit bepaalde features afleidt. Er
-zijn namelijk ongetwijfeld goede features waar je door pure redenering
-onmogelijk op kan komen. Je hebt dan meer aan een computer die patronen
-ziet waar een mens dat soms niet doet.
+Coming up with good features was not an easy task. It would have
+have been nice to build a neural network that takes recorded
+chess games as input and derives certain features from that. There are
+in fact, undoubtedly good features that by sheer reasoning are
+impossible to come up with. A computer that sees patterns
+where a human sometimes does not could thus prove useful.
 
-Ook de grandmaster moves hadden uitgebreider gekund, maar er was geen
-tijd om dit verder te implementeren. Dit had gekund door bijvoorbeeld
-bepaalde borden op te lijsten en direct te linken aan een zet.
+Also, the grandmaster moves could have been more extensive, but there was no
+time to implement this further. This could have been done by for example
+listing certain boards and linking them directly to a move.
 
-Ten slotte was het nog mogelijk geweest om het search algoritme te
-verbeteren door dieper te zoeken in branches met een hoger potentieel
-risico (quiescent search).
+Finally, it would have been possible to improve the search algorithm
+by searching deeper into branches with a higher potential
+risk (quiescent search).
